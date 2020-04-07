@@ -14,7 +14,7 @@
  * @typedef {string} PackSizeString
  */
 
- /**
+/**
  * The "Total Price" string from UNFI product grid.
  * @typedef {string} TotalPriceString
  */
@@ -34,7 +34,6 @@
  * @property {number} amount - The cost of the line item.
  */
 
-
 /**
  * Returns a best guess at quantity, measure, and units from UNFI Pack Size.
  * @param   {PackSizeString} packSize
@@ -48,7 +47,7 @@ function parsePackSize(packSize = '') {
   return {
     quantity: groups[1],
     measure: groups[3],
-    unit: groups[4].toLowerCase()
+    unit: groups[4].toLowerCase(),
   };
 }
 
@@ -60,7 +59,7 @@ function parsePackSize(packSize = '') {
 function parseTotalPrice(totalPrice = '') {
   return {
     currencyCode: totalPrice.substring(0, 1),
-    amount: parseInt(totalPrice.substring(1), 10)
+    amount: parseInt(totalPrice.substring(1), 10),
   };
 }
 
@@ -72,8 +71,8 @@ function parseTotalPrice(totalPrice = '') {
  *          A display message to indicate the price per units of measure.
  */
 function getPricePerUnit(packSize, totalPrice) {
-  const { measure, quantity, unit } = parsePackSize(packSize);
-  const { amount, currencyCode } = parseTotalPrice(totalPrice);
+  const {measure, quantity, unit} = parsePackSize(packSize);
+  const {amount, currencyCode} = parseTotalPrice(totalPrice);
   const pricePerUnitCalculation = (amount / quantity / measure).toFixed(2);
   const message = `${currencyCode}${pricePerUnitCalculation} per ${unit}`;
 
@@ -83,20 +82,22 @@ function getPricePerUnit(packSize, totalPrice) {
 }
 
 function mutateDataGrid() {
-  const headers = document.querySelectorAll('[data-role="grid"] table thead th');
+  const headers = document.querySelectorAll(
+    '[data-role="grid"] table thead th',
+  );
   const rows = document.querySelectorAll('[data-role="grid"] table tbody tr');
   const headersArray = Array.prototype.slice.call(headers);
-  const priceCellIndex = headersArray.findIndex((header) => {
+  const priceCellIndex = headersArray.findIndex(header => {
     return header.dataset.field === 'PackSize';
   });
-  const totalPriceCellIndex = headersArray.findIndex((header) => {
+  const totalPriceCellIndex = headersArray.findIndex(header => {
     return header.dataset.title === 'Total<br></th>Price';
   });
-  const productDescriptionCellIndex = headersArray.findIndex((header) => {
+  const productDescriptionCellIndex = headersArray.findIndex(header => {
     return header.dataset.field === 'ProductName';
   });
 
-  rows.forEach((row) => {
+  rows.forEach(row => {
     const packSizeCell = row.cells[priceCellIndex];
     const totalPriceCell = row.cells[totalPriceCellIndex];
     const productDescriptionCell = row.cells[productDescriptionCellIndex];
@@ -106,14 +107,16 @@ function mutateDataGrid() {
 
     console.log('[UNFIBUY]: parsed row data:', packSize, totalPrice);
 
-    productDescriptionCell.innerHTML = `${productDescriptionCell.innerText}<br /><span style="font-size: 11px; color: gray">${pricePerUnit}</span>`;
+    productDescriptionCell.innerHTML = `${
+      productDescriptionCell.innerText
+    }<br /><span style="font-size: 11px; color: gray">${pricePerUnit}</span>`;
   });
 }
 
 const dataGrid = document.querySelector('[data-role="grid"] table tbody');
-const mutationConfig = { attributes: true, childList: true };
+const mutationConfig = {attributes: true, childList: true};
 const dataGridObserver = new MutationObserver(function(mutationsList) {
-  for(var mutation of mutationsList) {
+  for (var mutation of mutationsList) {
     if (mutation.type == 'childList') {
       mutateDataGrid();
     }
