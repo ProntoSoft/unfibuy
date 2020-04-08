@@ -91,7 +91,7 @@ function mutateDataGrid() {
     return header.dataset.field === 'PackSize';
   });
   const totalPriceCellIndex = headersArray.findIndex(header => {
-    return header.dataset.title === 'Total<br></th>Price';
+    return header.dataset.title.match(/Total(.*)Price/g);
   });
   const productDescriptionCellIndex = headersArray.findIndex(header => {
     return header.dataset.field === 'ProductName';
