@@ -43,7 +43,7 @@
 function parsePackSize(packSize = '') {
   const parsePackSizeRe = /([\d]+[\s]?)([xX\/]?[\s]?)([+?-?\d+(\.\d+)?$]*[\s]?)([\w\#]*)/g;
   const groups = parsePackSizeRe.exec(packSize);
-
+  console.log(groups)
   return {
     quantity: groups[1],
     measure: groups[3],
@@ -73,7 +73,14 @@ function parseTotalPrice(totalPrice = '') {
 function getPricePerUnit(packSize, totalPrice) {
   const {measure, quantity, unit} = parsePackSize(packSize);
   const {amount, currencyCode} = parseTotalPrice(totalPrice);
-  const pricePerUnitCalculation = (amount / quantity / measure).toFixed(3);
+  // sometimes, there is only 1 package, implied by no measure, no delimiter
+  let pricePerUnitCalculation;
+  if (measure != "") {
+    pricePerUnitCalculation = (amount / quantity / measure).toFixed(3);
+  } else {
+    pricePerUnitCalculation = (amount / quantity).toFixed(3);
+  }
+
   let message = `${currencyCode}${pricePerUnitCalculation} per ${unit}`;
   switch (unit) {
     case "lb":
