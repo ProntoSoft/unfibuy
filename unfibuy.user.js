@@ -63,6 +63,11 @@ function parseTotalPrice(totalPrice = '') {
   };
 }
 
+function upNearestQuarter(value) {
+  return (Math.round(value * 4) / 4).toFixed(2)
+}
+
+
 /**
  * Returns the total price parsed into a data structure.
  * @param   {PackSizeString} packSize
@@ -81,17 +86,37 @@ function getPricePerUnit(packSize, totalPrice) {
     pricePerUnitCalculation = (amount / quantity).toFixed(3);
   }
 
-  let message = `${currencyCode}${pricePerUnitCalculation} per ${unit}`;
+  let message = `${currencyCode}${pricePerUnitCalculation} per ${unit} (cost)`;
   switch (unit) {
     case "lb":
     case "LB":
     case "#":
       var pricePerOunce = (pricePerUnitCalculation / 16).toFixed(3)
-      message += ` | ${currencyCode}${pricePerOunce} per oz`;
+      message += ` | ${currencyCode}${pricePerOunce} per oz (cost)`;
       break;
   }
+
   console.log('[UNFIBUY]: parsed price per unit:', message);
 
+  // calculate cost per item
+  // this is equal to the total price if there is no 'quantity' or quantity is 1
+  let costPerItem = (amount / quantity).toFixed(3)
+  console.log('[UNFIBUY]: parsed cost per item:', costPerItem);
+  message += ` | ${currencyCode}${costPerItem} per item (cost)`;
+  let markups = {};
+  for (let m = 1.4; m <= 2.0; m+=.1) {
+    markups[`x${m.toFixed(1)}`] = upNearestQuarter(costPerItem * m);
+  };
+  console.log(`[UNFIBUY]: Markups --> ${JSON.stringify(markups)}`);
+
+  // we are weird and give 18% on bulk pre-orders
+  let caseDiscountEachItem = (markups["x1.6"] * .82);
+  let caseDiscountTotal = caseDiscountEachItem * quantity;
+  console.log(`[UNFIBUY]: Case Discount Each Item --> ${caseDiscountEachItem}`);
+  console.log(`[UNFIBUY]: Case Discount Total --> ${caseDiscountTotal}`);
+  message += ` | Case Discount Price --> ${currencyCode}${caseDiscountTotal} (${currencyCode}${caseDiscountEachItem} / each)`;
+
+  message += ` | Price Markups: ${JSON.stringify(markups)}`;
   return message;
 }
 
@@ -118,6 +143,7 @@ function mutateDataGrid() {
     const packSize = packSizeCell.innerText || '';
     const totalPrice = totalPriceCell.innerText || '';
     const pricePerUnit = getPricePerUnit(packSize, totalPrice);
+
 
     console.log('[UNFIBUY]: parsed row data:', packSize, totalPrice);
 
