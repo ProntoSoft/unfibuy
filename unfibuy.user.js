@@ -124,7 +124,7 @@ function getPricePerUnit(packSize, totalPrice) {
   console.log(`[UNFIBUY]: Markups --> ${JSON.stringify(markups)}`);
 
   // we are weird and give 18% on bulk pre-orders
-  let caseDiscountEachItem = (markups["x1.6"] * .82);
+  let caseDiscountEachItem = (markups["x1.6"] * .82).toFixed(2);
   let caseDiscountTotal = caseDiscountEachItem * quantity;
   console.log(`[UNFIBUY]: Case Discount Each Item --> ${caseDiscountEachItem}`);
   console.log(`[UNFIBUY]: Case Discount Total --> ${caseDiscountTotal}`);
@@ -178,3 +178,4 @@ const dataGridObserver = new MutationObserver(function(mutationsList) {
 });
 
 dataGridObserver.observe(dataGrid, mutationConfig);
+
