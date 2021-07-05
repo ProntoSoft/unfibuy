@@ -41,12 +41,18 @@
  *          Parsed quantity, measure, and unit from Pack Size string.
  */
 function parsePackSize(packSize = '') {
-  const parsePackSizeRe = /([\d]+[\s]?)([xX\/]?[\s]?)([+?-?\d+(\.\d+)?$]*[\s]?)([\w\#]*)/g;
+  const parsePackSizeRe = /([\d\.]+[\s]?)([xX\/]?[\s]?)([+?-?\d+(\.\d+)?$]*[\s]?)([\w\#]*)/g;
   const groups = parsePackSizeRe.exec(packSize);
   console.log(groups)
+  if (groups[3] == "") {
+      console.log("[UNFIBUY]: No case count/quantity for item, thus this is a one-per-case item.")
+  }
   return {
-    quantity: groups[1],
-    measure: groups[3],
+    // if there is no "quantity", theres just 1 in the "case"
+    quantity: !groups[3] ? 1 : groups[1],
+    // if there is no groups[3], there's no "case count", so just 1 in the case
+    // and thus the measure of that item is all we have
+    measure: groups[3] ? groups[3] : groups[1],
     unit: groups[4].toLowerCase(),
   };
 }
@@ -57,9 +63,10 @@ function parsePackSize(packSize = '') {
  * @returns {ParsedTotalPrice}
  */
 function parseTotalPrice(totalPrice = '') {
+  console.log('totalPrice:', totalPrice);
   return {
     currencyCode: totalPrice.substring(0, 1),
-    amount: parseInt(totalPrice.substring(1), 10),
+    amount: parseFloat(totalPrice.substring(1), 10),
   };
 }
 
@@ -77,7 +84,12 @@ function upNearestQuarter(value) {
  */
 function getPricePerUnit(packSize, totalPrice) {
   const {measure, quantity, unit} = parsePackSize(packSize);
+  console.log('[UNFIBUY]: measure:', measure);
+  console.log('[UNFIBUY]: quantity:', quantity);
+  console.log('[UNFIBUY]: unit:', unit);
   const {amount, currencyCode} = parseTotalPrice(totalPrice);
+  console.log('[UNFIBUY]: price:', amount);
+  console.log('[UNFIBUY]: currencyCode:', currencyCode);
   // sometimes, there is only 1 package, implied by no measure, no delimiter
   let pricePerUnitCalculation;
   if (measure != "") {
@@ -100,6 +112,8 @@ function getPricePerUnit(packSize, totalPrice) {
 
   // calculate cost per item
   // this is equal to the total price if there is no 'quantity' or quantity is 1
+  console.log('[UNFIBUY]: parsed cost per "case":', amount);
+  console.log('[UNFIBUY]: parsed count/quantity:', quantity);
   let costPerItem = (amount / quantity).toFixed(3)
   console.log('[UNFIBUY]: parsed cost per item:', costPerItem);
   message += ` | ${currencyCode}${costPerItem} per item (cost)`;
@@ -110,7 +124,7 @@ function getPricePerUnit(packSize, totalPrice) {
   console.log(`[UNFIBUY]: Markups --> ${JSON.stringify(markups)}`);
 
   // we are weird and give 18% on bulk pre-orders
-  let caseDiscountEachItem = (markups["x1.6"] * .82);
+  let caseDiscountEachItem = (markups["x1.6"] * .82).toFixed(2);
   let caseDiscountTotal = caseDiscountEachItem * quantity;
   console.log(`[UNFIBUY]: Case Discount Each Item --> ${caseDiscountEachItem}`);
   console.log(`[UNFIBUY]: Case Discount Total --> ${caseDiscountTotal}`);
@@ -164,3 +178,4 @@ const dataGridObserver = new MutationObserver(function(mutationsList) {
 });
 
 dataGridObserver.observe(dataGrid, mutationConfig);
+
